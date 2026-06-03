@@ -27,6 +27,7 @@ def fetch_station(client: ApiClient, station_id: str) -> Station:
     return Station(**r.json())
 
 
+# Could add as an arg to function if we wanted.  Holding it as a constant for the sake of the challenge.
 AIR_QUALITY_RADIUS = 10
 
 
@@ -40,7 +41,6 @@ def fetch_air_quality_data(station: Station, date: date):
             "latitude": station.latitude,
             "longitude": station.longitude,
             "date": date.strftime("%Y-%m-%d"),
-            "distance": AIR_QUALITY_RADIUS,
             "API_KEY": os.environ["AIRNOW_API_KEY"],
         },
     )
