@@ -1,6 +1,8 @@
+import io
 import os
 from datetime import date
 
+import pandas as pd
 import requests
 from dotenv import load_dotenv
 from pydantic import BaseModel
@@ -27,11 +29,7 @@ def fetch_station(client: ApiClient, station_id: str) -> Station:
     return Station(**r.json())
 
 
-# Could add as an arg to function if we wanted.  Holding it as a constant for the sake of the challenge.
-AIR_QUALITY_RADIUS = 10
-
-
-def fetch_air_quality_data(station: Station, date: date):
+def fetch_air_quality_data(station: Station, date: date) -> pd.DataFrame:
     url = "https://airnowapi.org/aq/forecast/latLong"
 
     r = requests.get(
@@ -45,6 +43,9 @@ def fetch_air_quality_data(station: Station, date: date):
         },
     )
 
+    buffer = io.StringIO(r.text)
+    return pd.read_csv(buffer)
+
 
 def run():
     wisconet_client = ApiClient("https://wisconet.wisc.edu/api/v1")
@@ -53,6 +54,7 @@ def run():
 
     station = fetch_station(wisconet_client, stations[0])
     air_quality_data = fetch_air_quality_data(station, date(month=6, day=1, year=2026))
+    print(air_quality_data)
 
 
 if __name__ == "__main__":
