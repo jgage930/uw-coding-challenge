@@ -1,5 +1,7 @@
 import os
+from datetime import date
 
+import requests
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
@@ -20,16 +22,37 @@ class Station(BaseModel):
     longitude: float
 
 
-def get_station(client: ApiClient, station_id: str) -> Station:
+def fetch_station(client: ApiClient, station_id: str) -> Station:
     r = client.get(f"stations/{station_id}")
     return Station(**r.json())
 
 
+AIR_QUALITY_RADIUS = 10
+
+
+def fetch_air_quality_data(station: Station, date: date):
+    url = "https://airnowapi.org/aq/forecast/latLong"
+
+    r = requests.get(
+        url=url,
+        params={
+            "format": "text/csv",
+            "latitude": station.latitude,
+            "longitude": station.longitude,
+            "date": date.strftime("%Y-%m-%d"),
+            "distance": AIR_QUALITY_RADIUS,
+            "API_KEY": os.environ["AIRNOW_API_KEY"],
+        },
+    )
+
+
 def run():
     wisconet_client = ApiClient("https://wisconet.wisc.edu/api/v1")
+
     stations = ["OJNR", "DFRC", "ALTN"]
-    station = get_station(wisconet_client, stations[0])
-    print(station)
+
+    station = fetch_station(wisconet_client, stations[0])
+    air_quality_data = fetch_air_quality_data(station, date(month=6, day=1, year=2026))
 
 
 if __name__ == "__main__":
