@@ -11,4 +11,4 @@ class ApiClient:
         if self.token:
             headers = {"Authorization": f"Bearer {self.token}"}
 
-        return requests.get(f"{self.base_url}/endpoint", headers=headers)
+        return requests.get(f"{self.base_url}/{endpoint}", headers=headers)
