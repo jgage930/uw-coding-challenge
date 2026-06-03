@@ -1,2 +1,5 @@
-if __name__ == '__main__':
-    print('hello coding challenge!')
+from dotenv import load_dotenv
+
+if __name__ == "__main__":
+    load_dotenv()
+    print("hello coding challenge!")
