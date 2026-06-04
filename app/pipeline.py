@@ -1,8 +1,9 @@
 import io
 import os
-from datetime import date, datetime
+from datetime import date
 from typing import Literal
 
+import boto3
 import pandas as pd
 import requests
 from loguru import logger
@@ -37,7 +38,7 @@ def fetch_daily_air_quality_data(station: Station, date: date) -> pd.DataFrame:
 
 def fetch_past_air_quality_data(station: Station, days: int) -> pd.DataFrame:
     start = date.today()
-    date_range = generate_date_range(start, 7)
+    date_range = generate_date_range(start, days)
     dfs = [fetch_daily_air_quality_data(station, date) for date in date_range]
     return pd.concat(dfs, ignore_index=True)
 
@@ -74,6 +75,17 @@ class Report(BaseModel):
     min: float
     max: float
 
+    def generate_s3_key(self) -> str:
+        date_str = self.date_.strftime("%Y-%m-%d")
+        return f"{date_str}-{self.station_id}-{self.days}day-{self.pollutant_type}report.json"
+
+
+def upload_report(report: Report):
+    buffer = io.BytesIO(report.model_dump_json().encode("utf-8"))
+
+    s3 = boto3.client("s3")
+    s3.upload_fileobj(buffer, os.environ["S3_BUCKET_NAME"], report.generate_s3_key())
+
 
 def run_aqi_data_pipeline(station_id: str, days: int):
     logger.info(f"Fetching station info for: {station_id}...")
@@ -97,6 +109,9 @@ def run_aqi_data_pipeline(station_id: str, days: int):
         max=pm_25_df["Concentration"].max(),
     )
 
+    logger.info("Uploading PM2.5 Report...")
+    upload_report(pm_25_report)
+
     logger.info("Building reports for O3 data...")
     ozone_df = concentration_df[concentration_df["ParameterName"] == "O3"]
     ozone_report = Report(
@@ -109,5 +124,5 @@ def run_aqi_data_pipeline(station_id: str, days: int):
         max=ozone_df["Concentration"].max(),
     )
 
-    print(pm_25_report)
-    print(ozone_report)
+    logger.info("Uploading Ozone Report...")
+    upload_report(ozone_report)

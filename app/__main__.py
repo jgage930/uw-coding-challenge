@@ -1,12 +1,19 @@
 from dotenv import load_dotenv
+from loguru import logger
 
 from .pipeline import run_aqi_data_pipeline
+
+ONE_WEEK = 7
 
 
 def run():
     stations = ["OJNR", "DFRC", "ALTN"]
 
-    run_aqi_data_pipeline(stations[0], 7)
+    for station in stations:
+        try:
+            run_aqi_data_pipeline(station, ONE_WEEK)
+        except Exception as e:
+            logger.error(f"Failed to run aqi pipeline for {station}. Due to: {e}")
 
 
 if __name__ == "__main__":
