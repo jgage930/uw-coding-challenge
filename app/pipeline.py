@@ -1,11 +1,12 @@
 import io
 import os
-from datetime import date
+from datetime import date, datetime
+from typing import Literal
 
 import pandas as pd
 import requests
 from loguru import logger
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .utils import convert_ozone, convert_pm25, generate_date_range
 
@@ -61,6 +62,19 @@ def convert_row(row: pd.Series) -> pd.Series:
     return row
 
 
+class Report(BaseModel):
+    station_id: str
+    date_: date = Field(default_factory=date.today)
+    days: int = Field(
+        description="Number of days included in the range. Start with start and looks back."
+    )
+    pollutant_type: Literal["PM2.5", "O3"]
+    units: str
+    average: float
+    min: float
+    max: float
+
+
 def run_aqi_data_pipeline(station_id: str, days: int):
     logger.info(f"Fetching station info for: {station_id}...")
     station = fetch_station(station_id)
@@ -70,12 +84,30 @@ def run_aqi_data_pipeline(station_id: str, days: int):
 
     logger.info("Calculating concentrations...")
     concentration_df = aqi_df.apply(convert_row, axis=1)
-    print(concentration_df.to_string())
 
     logger.info("Building reports for PM2.5 data...")
     pm_25_df = concentration_df[concentration_df["ParameterName"] == "PM2.5"]
-    print(pm_25_df)
+    pm_25_report = Report(
+        station_id=station_id,
+        days=days,
+        pollutant_type="PM2.5",
+        units="micrograms per cubic meter",
+        average=pm_25_df["Concentration"].mean(),
+        min=pm_25_df["Concentration"].min(),
+        max=pm_25_df["Concentration"].max(),
+    )
 
-    logger.info("Buildinf reports for O3 data...")
+    logger.info("Building reports for O3 data...")
     ozone_df = concentration_df[concentration_df["ParameterName"] == "O3"]
-    print(ozone_df)
+    ozone_report = Report(
+        station_id=station_id,
+        days=days,
+        pollutant_type="O3",
+        units="parts per million",
+        average=ozone_df["Concentration"].mean(),
+        min=ozone_df["Concentration"].min(),
+        max=ozone_df["Concentration"].max(),
+    )
+
+    print(pm_25_report)
+    print(ozone_report)
