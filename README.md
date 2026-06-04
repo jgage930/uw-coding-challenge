@@ -5,8 +5,10 @@ Coding challenge for the uw data developer interview.
 Make sure requirements are satisfied.
 
 ## Requirments
-`python >= 3.12 (can't guarentee this will work for older versions)`
-`uv (recommended) or pip`
+```
+python >= 3.12 (can't guarentee this will work for older versions)
+uv (recommended) or pip
+```
 
 Clone the repo:
 ```
@@ -34,4 +36,9 @@ source venv/bin/activate
 install packages with
 ```
 pip install -r requirements.txt
+```
+
+Finally execute the script:
+```
+python -m app
 ```
