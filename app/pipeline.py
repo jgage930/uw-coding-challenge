@@ -83,7 +83,11 @@ class Report(BaseModel):
 def upload_report(report: Report):
     buffer = io.BytesIO(report.model_dump_json().encode("utf-8"))
 
-    s3 = boto3.client("s3")
+    s3 = boto3.client(
+        "s3",
+        aws_access_key_id=os.environ["AWS_ACCESS_KEY"],
+        aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+    )
     s3.upload_fileobj(buffer, os.environ["S3_BUCKET_NAME"], report.generate_s3_key())
 
 

@@ -10,10 +10,11 @@ def run():
     stations = ["OJNR", "DFRC", "ALTN"]
 
     for station in stations:
-        try:
-            run_aqi_data_pipeline(station, ONE_WEEK)
-        except Exception as e:
-            logger.error(f"Failed to run aqi pipeline for {station}. Due to: {e}")
+        run_aqi_data_pipeline(station, ONE_WEEK)
+        # try:
+        #     run_aqi_data_pipeline(station, ONE_WEEK)
+        # except Exception as e:
+        #     logger.error(f"Failed to run aqi pipeline for {station}. Due to: {e}")
 
 
 if __name__ == "__main__":
