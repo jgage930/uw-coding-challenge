@@ -54,7 +54,8 @@ def convert_row(row: pd.Series) -> pd.Series:
 
     if parameter_name == "PM2.5":
         row["Concentration"] = convert_pm25(aqi, category_number)
-    elif parameter_name == "03":
+
+    if parameter_name == "O3":
         row["Concentration"] = convert_ozone(aqi, category_number)
 
     return row
