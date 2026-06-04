@@ -26,7 +26,7 @@ To run with uv simply run:
 uv run python -m app
 ```
 
-## Without pip
+## With pip
 Create a virtual enviroment and activate
 ```
 python -m venv venv
